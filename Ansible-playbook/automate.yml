@@ -1,0 +1,32 @@
+- name: Configure webserver in docker
+  become: true
+  hosts: localhost
+  tasks:
+    - name: setup yum repo for docker on CentOS or RHEL9
+      yum_repository:
+        baseurl: https://download.docker.com/linux/centos/9/x86_64/stable/
+        name: docker_installation
+        gpgcheck: no
+        description: Installing docker-ce
+
+    - name: install docker
+      package:
+        name: docker-ce
+        state: present
+
+    - name: Start the docker service
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: pulling httpd image
+      command: docker pull httpd
+
+    - name: file creation
+      ansible.builtin.copy:
+        content: "<b> This file was moved to /etc/other.conf</b>"
+        dest: /var/www/html/index.html
+
+    - name: launching the container
+      command: docker run -dit -v /var/www/html:/usr/local/apache2/htdocs -p 80:80 httpd
